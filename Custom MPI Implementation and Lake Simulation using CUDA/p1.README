@@ -1,0 +1,49 @@
+/*
+Single Author info:
+nphabia Niklesh Ashok Phabiani
+Group info:
+nphabia Niklesh Ashok Phabiani
+anjain2 Akshay Narendra Jain
+rtnaik	Rohit Naik
+*/
+
+My code will run by executing the following commands:
+To compile: make -f p1.Makefile
+To execute: ./my_prun ./my_rtt
+
+The code execution might take some time. Kindly wait.
+
+HW1 
+     Avg  Std_Dev
+32   4.5  0.5
+64   5.7  1.187434
+128  7.3  1.345362
+256  7.6  0.489898
+512  8.4  0.489898
+1024 11.5  2.872281
+2048 13.8  0.6
+
+HW2
+   Avg		Std_Dev
+32 986.300000 98.958628
+64 1019.200000 109.841522
+128 1028.200000 132.150520
+256 1067.100000 116.555952
+512 1122.400000 133.775334
+1024 1267.300000 84.864657
+2048 1259.300000 127.145625
+4096 1367.300000 101.413066
+8192 1429.600000 112.192870
+16384 1457.300000 173.229934
+32768 1415.700000 70.757402
+65536 1529.900000 134.478586
+131072 1706.400000 162.648824
+262144 1518.700000 79.833640
+524288 1649.500000 238.857384
+1048576 1786.100000 137.220589
+2097152 1755.600000 215.363507
+
+With the HW2 implementation, the average RTT for small message sizes is around 200 times. As message size has increased it has increased to around 100 times.
+
+Currently, my_prun is implemented to run on 4 nodes and 8 processes. Kindly change my_prun if needed. This is because on the last day of testing, we
+had to execute in such a way.

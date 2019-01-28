@@ -1,0 +1,19 @@
+/*
+Single Author info:
+nphabia Niklesh Ashok Phabiani
+Group info:
+nphabia Niklesh Ashok Phabiani
+anjain2 Akshay Narendra Jain
+rtnaik	Rohit Naik
+*/
+
+(niter/10) threads are executed per each block (total blocks = 10). My code will scale to around 10000 iterations since I observed that each block 
+has a capability of around 1000 threads in it. It can be be scaled more by changing the number of blocks, number of threads per block. Also, each thread can be
+made to perform a certain number of iterations. Currently, each thread will just perform one execution. A good value of pi is obtained around 5000 iterations.
+Going very high will decrease the value a bit.
+
+Counts are gathered at the end from each thread by executing the for loop after coming back to the CPU.
+
+To compile: make -f p2.Makefile
+To run: ./p2 (number of iterations)
+
