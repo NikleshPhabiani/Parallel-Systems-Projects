@@ -1,0 +1,62 @@
+/*
+Single Author Info
+nphabia Niklesh Ashok Phabiani
+*/
+
+TF Job (Word Count Job + Document Size Job) - Gathers all data needed for TF calculation from wordsRDD
+Map
+1. Here, I initially retrieved (word@document) and (docSize) from the incoming tuple.
+2. Emitted from map as (word@document) and (1/docSize). This happens for each word in each of the document.
+Reduce
+1. The same word in each of the documents is combined and (word@document) with (wordCount/docSize).
+2. Initially, the 2 intermediate counts are combined. In the call() function of reduceByKey,
+two arguments come in each time, and intermediate/final results are obtained. In this way,
+the same word in the entire document gets combined and total count of each word in each document
+is obtained, thereby emitting (word@document) with (wordCount/docSize i.e term frequency)
+
+IDF job - Gathers all data needed for IDF calculation from tfRDD
+Map
+1. Here, the input comes in as (word@document) and the (wordCount/docSize i.e term frequency).
+Just splitting and combination is done, thereby emitting (word) and (1/document)
+
+Reduce
+1. Here, same words from all the documents are combined. For every execution of call() function,
+initially the counts are added thereby indicating the presence of a particular word in that
+document. As the process continues, this ultimately produces the total number
+of documents in which a word is present.
+2. Also, the documents getting considered in each call() for a particular word are combined
+with separator being a ','.
+3. Steps (1) and (2) are combined to ultimately produce for each word the number of documents
+in which this word appears along with the document names and this is emitted as
+(numDocsWithWord/document1,document2,.....)
+
+Map
+1. Here, again a word present in each of the documents is obtained. For each document in
+which a word appears, the (word@document) along with (numDocs/numDocsWithWord) is emitted.
+Basically, its the IDF(without logarithm) that gets emitted.
+2. For each word, all documents that are separated by a ',' are obtained. (numDocsWithWord)
+is also obtained in this step.
+3. For each document in which this word is present, (word@document) with (numDocs/numDocsWithWord)
+is emitted as the output of this map phase.
+
+TF * IDF Job - Calculates final TFIDF value from tfRDD and idfRDD
+Map
+1. Takes in the input from the TF job (tfRDD). It basically converts the term frequency
+coming in as a string into double and emits (word@document) with (TF), where TF is of type double.
+
+Map
+1. Takes in the input from the IDF job (idfRDD). Here, IDF is calculated by first converting
+numDocsWithWord into double and then taking the natural log of (numDocs/numDocsWithWord).
+
+Union and Reduce
+1. A union of TF and IDF is performed, and a product of TF and IDF is emitted.
+This causes the output of the union step to be (word@document) with TFIDF.
+
+Map
+1. Here, the input coming in as (word@document) is reversed, thereby emitting
+(document@word) with TFIDF.
+
+
+The Spark implementation is even faster as compared to Hadoop's because in case of Hadoop,
+the intermediate results are stored in the intermediate file system whereas Spark makes
+use of memory too to store the intermediate results.

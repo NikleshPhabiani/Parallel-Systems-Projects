@@ -1,0 +1,53 @@
+/* Single Author Info */
+nphabia Niklesh Ashok Phabiani
+
+A separate job is defined for each of the jobs that need to be executed and they execute one after the other, starting with the word count job followed
+by the document size job followed by the TFIDF job. Jar class, Mapper class, Reducer class, Output key and value class are defined for each of the jobs
+along with the approopriate input and output paths. 
+
+1. Word count job
+Mapper:
+- map method processes one line at a time. The words in the line are splitted using the split() function, considering whitespaces as the splitter.
+- An iteration is done through all the words and for each word in the line, the map function emits a key-value pair of <<word@docName>, 1>
+
+Reducer:
+- For each identical key (word@document), reduces the values (1) into a sum (wordCount). Basically, for each word in the document, the reducer 
+produces the total number of times each word appears in that document, and this is done by iterating through the values that come in as an Iterable
+in the reduce function.
+
+2. Document size job
+Mapper:
+- Rearranges the (key,value) pairs to have only the document as the key
+- Haven't changed the datatypes of the arguments to the functions. Hence, in the mapper, my keys also come in as a part of the values. Hence, initially 
+the key and values are splitted up, which come in separated by whitespaces.
+- Key(word@document) is splitted using @ as the splitter. This gives us (document) as a separate string.
+- Rearrangement is done to emit <document, (word=wordCount)> as the intermediate key-value pair.
+
+Reducer:
+- For each identical key (document), reduces the values (word=wordCount) into a sum (docSize)
+- Here, two iterations are done through the list of values. The list of values comprises of all the words that appear in that document along with
+their respective counts. In the first iteration, the document size is calculated by adding the count of each word to a 'docSize' variable. Alongside,
+the words and their corresponding counts are stored in an array list so that the second iteration can occur. This is because we can't iterate through 
+the iterable again.
+- In the second iteration, the term frequency for each word is obtained using the word count and the document size, and a new key-value pair
+is outputted as <(word@document) , (wordCount/docSize)>.
+
+3. TFIDF job
+Mapper:
+- Rearranges the (key,value) pairs to have only the word as the key.
+- Haven't changed the datatypes of the arguments to the functions. Hence, in the mapper, my keys also come in as a part of the values. Hence, initially 
+the key and values are splitted up, which come in separated by whitespaces.
+- The key (word@document) is splitted using @ as the splitter.
+- Rearrangement is done to emit <word, document=wordCount/docSize> as the intermediate key-value pair.
+
+Reducer:
+- For each identical key (word), reduces the values (document=wordCount/docSize) into a the final TFIDF value (TFIDF). 
+Along the way, calculates the total number of documents and the number of documents that contain the word.
+- Here, two iterations are done through the list of values. In the first iteration, the number of documents with that particular word coming in as the
+key is found out by iterating through the values list that contains the document name and the term frequency. Alongside, the the values are stored in 
+a separate list for the second iteration to take place by iterating through this new list.
+- In the second iteration, TFIDF calculation is done. Initially the value is splitted (= as splitter) to obtain the term frequency. 
+The term frequency is then splitted (/ as splitter ), thereby giving us the numerator and denominator. The numerator and denominator are converted into
+double and term frequency is calculated. The TFIDF value is calculated using the formula: term frequency * ln(numDocs/ numDocsWithWord). This is 
+then stored in the map with <document@word, TFIDF> as the key-value pair. 
+

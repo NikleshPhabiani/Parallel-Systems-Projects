@@ -1,0 +1,65 @@
+/*
+Single Author Info:
+nphabia Niklesh Ashok Phabiani
+*/
+
+1. Describe your implementation step-by-step. This should include descriptions of what MPI messages get sent/received by which rank, and in what order.
+
+1. Initially, the master (rank 0) calculates the number of documents that needs to be processed by each worker. It calculates
+the total number of documents that need to be processed, and calculates the minimum number of files that each worker
+needs to process. When the number of docs is not evenly divisible, the additional files are distributed (one to each starting
+from the first worker). The master does the aforementioned calculations and sends the total number of documents,
+number of documents to be processed by the worker and the starting document number to each worker using MPI_Send() starting from
+worker 1 ... worker (numproc - 1).
+Each worker receives the aforementioned data using MPI_Recv() from the master.
+
+2. Now, each worker starts processing the relevant documents assigned to it by the master. Each worker starts updating
+the values for the TF and the unique words in the documents that it is processing.
+
+Post this, each worker mainly needs to get a proper value of numDocsWithWord in order to calculate the TFIDF.
+3. For that, I initially send the unique words encountered by each worker from each worker to all other workers using MPI_Isend()
+and MPI_IRecv() calls. MPI_Waitall() is used so that the worker proceeds only after it receives the number of unique words
+from all the workers.
+4. Post this, each worker calculates the total number of unique words that it has received by summing
+up the unique words received from each worker.
+5. Post this each worker initializes the parameters for the derived datatype, which is of the unique words struct type.
+MPI_Isend() and MPI_Irecv() is used to send and receive the dervived datatype from each worker to all the other workers.
+MPI_Waitall() is used even here so that the worker proceeds only after it has received all the unique words data
+from all the other workers.
+6. Each worker updates relevant numDocsWithWord by iterating through the received data corresponding to the unique words
+from all the workers.
+7. Each worker now calculates the TFIDF for all the words in the documents that it is responsible for.
+8. I gather the number of TFIDF entries at the master from each worker using MPI_Igather(). MPI_Waitall() is used so that
+the master proceeds only after it has gathered the TFIDF entries from all the workers.
+9. Master calculates recv_counts and displs to gather the TFIDF from each worker since unequal number values can be received
+from each worker.
+10. I gather the TFIDF strings at the master from each worker using MPI_Igatherv() followed by MPI_Waitall(). The gather
+is of a derived data type (word_document_str), which is the datatype of the final TFIDF strings. In this way, master
+now has all the TFIDF strings with it.
+
+
+2. Describe how you could add more parallelism to your code so that all of the processors on each MPI node are used instead of only one processor per MPI node.
+
+More parallelism could be added on each MPI node by using OpenMP or OpenACC on each of the nodes. Through that, we could
+process each document assigned to a worker node on a different processor thereby parallelizing the update of the values
+for the TF and the unique words in the documents that the worker node is processing. This is mainly parallelizing step (2)
+mentioned above. This might lead to some better performance if each worker node is assigned with a large number
+of documents.
+
+3. Compare your MPI implementation to the previous MapReduce and Spark implementations of TFIDF.
+
+1. In case of MapReduce and Spark, the shuffle phase happens internally, and we didn't have to handle that explicitly.
+However, in case of MPI, we are handling that explicitly by updating the relevant fields in the struct while going through
+all the documents.
+2. In case of MPI implementation, the communication overhead might be more as compared to what would be involved
+in the shuffle phase of MapReduce and Spark since for retrieving some value we might have to make multiple MPI calls.
+(eg: In order to just get numDocsWithWord, we first need to get the number of unique word entries with each worker,
+followed by all the entries).
+3. There are no intermediate key-value value pairs that explicitly get generated in case of MPI implementation.
+It is mainly the objects (structs here) corresponding to each word that we need to mainly deal with. In case of
+MapReduce, each intermediate key-value pair generated after the map phase gets persisted in the intermediate file system,
+and this even increases the overall execution time. In case of Spark too, the multiple RDDs are formed but since it
+first uses the memory, significant difference in execution time might not be observed as compared to MPI.
+4. Here, the MPI implementation seems to be faster as compared to MapReduce and Spark. However, with large number of
+documents and words along with more worker nodes, the communication overhead will become visible and increase the
+overall execution time.
