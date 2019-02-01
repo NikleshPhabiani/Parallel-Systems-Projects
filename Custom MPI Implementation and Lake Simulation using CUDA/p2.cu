@@ -1,10 +1,6 @@
 /*
 Single Author info:
 nphabia Niklesh Ashok Phabiani
-Group info:
-nphabia Niklesh Ashok Phabiani
-anjain2 Akshay Narendra Jain
-rtnaik	Rohit Naik
 */
 
 /* Program to compute Pi using Monte Carlo methods */
